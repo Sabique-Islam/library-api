@@ -4,6 +4,7 @@
 - **Create a new book**
 - **Checkout a book**
 - **Return a book**
+- **Delete a book**
 
 ### Cloning
 
@@ -54,5 +55,13 @@ curl -X PATCH "http://localhost:8080/api/checkout?id=10"
 
 ```
 curl -X PATCH "http://localhost:8080/api/return?id=10"
+
+```
+
+### Delete a book
+
+```
+curl -X DELETE "http://localhost:8080/api/books?id=10"
+"
 
 ```
