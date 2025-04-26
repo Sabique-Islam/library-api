@@ -62,6 +62,5 @@ curl -X PATCH "http://localhost:8080/api/return?id=10"
 
 ```
 curl -X DELETE "http://localhost:8080/api/books?id=10"
-"
 
 ```
