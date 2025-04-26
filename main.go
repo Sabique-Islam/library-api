@@ -1,13 +1,12 @@
 package main
 
 import (
-	//"fmt"
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"errors"
 )
 
-type book struct{
+type book struct {
 	ID       string `json:"id"`
 	Title    string `json:"title"`
 	Author   string `json:"author"`
@@ -20,7 +19,7 @@ var books = []book{
 	{ID: "3", Title: "War and Peace", Author: "Leo Tolstoy", Quantity: 6},
 	{ID: "4", Title: "The Hobbit", Author: "J.R.R. Tolkien", Quantity: 1},
 	{ID: "5", Title: "The Lord of the Rings", Author: "J.R.R. Tolkien", Quantity: 3},
-	{ID: "6", Title: "Game of thrones", Author: "George R.R. Martin", Quantity: 2},
+	{ID: "6", Title: "Game of Thrones", Author: "George R.R. Martin", Quantity: 2},
 	{ID: "7", Title: "Harry Potter", Author: "J.K. Rowling", Quantity: 4},
 }
 
@@ -33,10 +32,12 @@ func getBookById(id string) (*book, error) {
 	return nil, errors.New("book not found")
 }
 
-func getBooks(c *gin.Context) { //c: context
+// Method --> GET /api/books - get all books
+func getBooks(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, books)
 }
 
+// Method --> GET /api/books/:id - get a single book by id
 func bookById(c *gin.Context) {
 	id := c.Param("id")
 	book, err := getBookById(id)
@@ -46,12 +47,14 @@ func bookById(c *gin.Context) {
 		return
 	}
 	c.IndentedJSON(http.StatusOK, book)
-}	
+}
 
+// Method --> POST /api/books - create a new book
 func createBook(c *gin.Context) {
 	var newBook book
 
-	if err := c.BindJSON(&newBook); err != nil { //BindJSON: handles error sending response
+	if err := c.BindJSON(&newBook); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		return
 	}
 
@@ -59,6 +62,7 @@ func createBook(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newBook)
 }
 
+// Method --> PATCH /api/checkout?id= - checkout a book
 func checkoutBook(c *gin.Context) {
 	id, ok := c.GetQuery("id")
 
@@ -81,9 +85,9 @@ func checkoutBook(c *gin.Context) {
 
 	book.Quantity -= 1
 	c.IndentedJSON(http.StatusOK, book)
-	
 }
 
+// Method --> PATCH /api/return?id= - return a book
 func returnBook(c *gin.Context) {
 	id, ok := c.GetQuery("id")
 
@@ -100,16 +104,38 @@ func returnBook(c *gin.Context) {
 	}
 
 	book.Quantity += 1
-	c.IndentedJSON(http.StatusOK,book)
-}	
+	c.IndentedJSON(http.StatusOK, book)
+}
+
+// Method --> DELETE /api/books?id= - delete a book
+func deleteBook(c *gin.Context) {
+	id, ok := c.GetQuery("id")
+	if !ok {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Missing id query parameter."})
+		return
+	}
+
+	for i, b := range books {
+		if b.ID == id {
+			// Remove the book from slice
+			books = append(books[:i], books[i+1:]...)
+			c.IndentedJSON(http.StatusOK, gin.H{"message": "Book deleted successfully"})
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"})
+}
 
 func main() {
 	router := gin.Default()
+
 	router.GET("/api/books", getBooks)
 	router.GET("/api/books/:id", bookById)
 	router.POST("/api/books", createBook)
 	router.PATCH("/api/checkout", checkoutBook)
 	router.PATCH("/api/return", returnBook)
+	router.DELETE("/api/books", deleteBook)
+
 	router.Run("localhost:8080")
-	//fmt.Println(books[0].Title)
 }
